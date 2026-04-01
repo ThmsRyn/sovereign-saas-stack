@@ -1,0 +1,16 @@
+.env
+.env.*
+*.age
+*.key
+*.pem
+*.p12
+restic-password
+.age/
+secrets/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars
+.terraform.lock.hcl

@@ -1,0 +1,12 @@
+/var/log/nginx/*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    sharedscripts
+    postrotate
+        docker compose -f /opt/myapp/docker-compose.yml exec -T nginx nginx -s reopen 2>/dev/null || true
+    endscript
+}

@@ -1,0 +1,71 @@
+# goss test file — sovereign-saas-stack
+# Run with: goss -g goss.yaml validate
+
+service:
+  docker:
+    enabled: true
+    running: true
+  fail2ban:
+    enabled: true
+    running: true
+  crowdsec:
+    enabled: true
+    running: true
+  node_exporter:
+    enabled: true
+    running: true
+
+port:
+  tcp:2222:
+    listening: true
+    ip:
+      - "0.0.0.0"
+  tcp:80:
+    listening: true
+  tcp:443:
+    listening: true
+  tcp:5432:
+    listening: false
+  tcp:3000:
+    listening: false
+  tcp:9090:
+    listening: false
+
+process:
+  node_exporter:
+    running: true
+
+command:
+  "docker compose -f /opt/myapp/docker-compose.yml ps --status running --services":
+    exit-status: 0
+    stdout:
+      - "app"
+      - "postgres"
+      - "nginx"
+      - "prometheus"
+      - "grafana"
+  "ufw status | grep -c 'ALLOW'":
+    exit-status: 0
+    stdout:
+      - "/^[3-9]/"
+  "find /var/log -name 'backup.log' -mmin -1620":
+    exit-status: 0
+    stdout:
+      - "/backup.log/"
+
+file:
+  /etc/fail2ban/jail.local:
+    exists: true
+  /opt/myapp/.env:
+    exists: true
+    mode: "0600"
+  /etc/letsencrypt/live:
+    exists: true
+    filetype: directory
+
+# Adapt this to your domain
+# command:
+#   "curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://yourdomain.com":
+#     exit-status: 0
+#     stdout:
+#       - "200"

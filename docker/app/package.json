@@ -1,0 +1,8 @@
+{
+  "name": "sovereign-saas-demo",
+  "version": "1.0.0",
+  "description": "Demo Node.js app for sovereign-saas-stack",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "engines": { "node": ">=22" }
+}
