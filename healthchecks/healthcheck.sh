@@ -1,14 +1,57 @@
-#!/bin/bash
-# Basic healthcheck script
-# Checks containers, HTTP, database, and disk usage
+#!/usr/bin/env bash
+# healthcheck.sh - checks containers, HTTP, database, and disk usage
 
-set -uo pipefail
+set -euo pipefail
 
-ALERT_EMAIL="you@youremail.com"
-DOMAIN="yourdomain.com"
-COMPOSE_DIR="/opt/myapp"
+ALERT_EMAIL="${ALERT_EMAIL:-}"
+DOMAIN="${DOMAIN:-yourdomain.com}"
+COMPOSE_DIR="${COMPOSE_DIR:-/opt/myapp}"
 DISK_THRESHOLD=85
 ERRORS=()
+SEND_MAIL=true
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./healthcheck.sh [--domain example.com] [--compose-dir /opt/app]
+                   [--alert-email ops@example.com] [--disk-threshold 85]
+                   [--no-mail]
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --domain)
+      DOMAIN="${2:?--domain requires a value}"
+      shift 2
+      ;;
+    --compose-dir)
+      COMPOSE_DIR="${2:?--compose-dir requires a value}"
+      shift 2
+      ;;
+    --alert-email)
+      ALERT_EMAIL="${2:?--alert-email requires a value}"
+      shift 2
+      ;;
+    --disk-threshold)
+      DISK_THRESHOLD="${2:?--disk-threshold requires a value}"
+      shift 2
+      ;;
+    --no-mail)
+      SEND_MAIL=false
+      shift
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
 
 # 1. Check Docker containers
 CONTAINERS=("app" "postgres" "nginx" "prometheus" "grafana")
@@ -43,7 +86,9 @@ if [ ${#ERRORS[@]} -gt 0 ]; then
     MESSAGE+="- $error\n"
   done
   echo -e "$MESSAGE"
-  echo -e "$MESSAGE" | mail -s "[ALERT] $DOMAIN healthcheck failed" "$ALERT_EMAIL"
+  if [[ "$SEND_MAIL" == true && -n "$ALERT_EMAIL" ]] && command -v mail >/dev/null 2>&1; then
+    echo -e "$MESSAGE" | mail -s "[ALERT] $DOMAIN healthcheck failed" "$ALERT_EMAIL"
+  fi
 else
   echo "[$(date)] All checks passed."
 fi

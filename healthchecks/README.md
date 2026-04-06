@@ -30,7 +30,7 @@ sudo crontab -e
 Add:
 
 ```
-*/5 * * * * /opt/scripts/healthcheck.sh >> /var/log/healthcheck.log 2>&1
+*/5 * * * * /opt/scripts/healthcheck.sh --domain app.example.com --compose-dir /opt/sovereign-saas --alert-email ops@example.com >> /var/log/healthcheck.log 2>&1
 ```
 
 Runs every 5 minutes.
@@ -39,10 +39,16 @@ Runs every 5 minutes.
 
 ## Alerting
 
-The script sends an email when a check fails. Configure the `ALERT_EMAIL` variable and make sure `mailutils` is installed:
+The script can send an email when a check fails. Pass `--alert-email` and make sure `mailutils` is installed:
 
 ```bash
 sudo apt install -y mailutils
 ```
 
 For a more robust solution, pair this with Grafana alerts (see `../monitoring/`).
+
+If you already have another alerting layer, keep the exit code and stdout only:
+
+```bash
+./healthcheck.sh --domain app.example.com --compose-dir /opt/sovereign-saas --no-mail
+```
